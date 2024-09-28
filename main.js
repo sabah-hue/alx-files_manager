@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import redisClient from './utils/redis';
 
 (async () => {
