@@ -8,9 +8,12 @@ const DATABASE = process.env.DB_DATABASE || 'files_manager';
 class DBClient {
   constructor() {
     this.client = new MongoClient(`mongodb://${HOST}:${PORT}`);
-    this.client.connect()
-      .then(() => this.db = this.client.db(`${DATABASE}`))
-      .catch((e) => { console.log(e); });
+    this.client.connect((err) => {
+      if (!err) this.db = this.client.db(DATABASE);
+    });
+    // this.client.connect()
+    //   .then(() => this.db = this.client.db(`${DATABASE}`))
+    //   .catch((e) => { console.log(e); });
   }
 
   // true when connection to MongoDB is a success otherwise, false
@@ -26,7 +29,7 @@ class DBClient {
 
   // returns the number of documents in the collection files
   async nbFiles() {
-    const files = this.db.collection('files').countDocuments();
+    const files = await this.db.collection('files').countDocuments();
     return files;
   }
 }
