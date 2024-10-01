@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb'
-import { promisify } from 'util';
 
 const HOST = process.env.DB_HOST || 'localhost';
 const PORT = process.env.DB_PORT || 27017;
@@ -16,10 +15,7 @@ class DBClient {
 
   // true when connection to MongoDB is a success otherwise, false
   isAlive() {
-    if (this.client.isconnected()) {
-      return true;
-    }
-    return false;
+    return this.client.isConnected();
   }
 
   //  returns the number of documents in the collection users
