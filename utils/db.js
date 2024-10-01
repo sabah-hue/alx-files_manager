@@ -10,7 +10,7 @@ class DBClient {
     this.client = new MongoClient(`mongodb://${HOST}:${PORT}`);
     this.client.connect()
       .then(() => this.db = this.client.db(`${DATABASE}`))
-      .catch((e) => console.log(e));
+      .catch((e) => { console.log(e); });
   }
 
   // true when connection to MongoDB is a success otherwise, false
@@ -20,12 +20,14 @@ class DBClient {
 
   //  returns the number of documents in the collection users
   async nbUsers() {
-    return await this.db.collection('users').countDocuments();
+    const users = await this.db.collection('users').countDocuments();
+    return users;
   }
 
   // returns the number of documents in the collection files
   async nbFiles() {
-    return await this.db.collection('files').countDocuments();
+    const files = this.db.collection('files').countDocuments();
+    return files;
   }
 }
 
