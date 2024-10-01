@@ -11,6 +11,8 @@ router.get('/stats', AppController.getStats);
 
 // User Routes
 router.post('/users', UsersController.postNew);
+router.get('/users/me', UsersController.getMe);
 
+// Auth Routes
 
 export default router;
