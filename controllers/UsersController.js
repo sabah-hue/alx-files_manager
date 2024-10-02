@@ -1,6 +1,5 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 import sha1 from 'sha1';
+import dbClient from '../utils/db';
 
 class UsersController {
   // return if Redis is alive and if the DB is alive too
@@ -14,12 +13,13 @@ class UsersController {
     if (!password) {
       res.status(400).json({ error: 'Missing password' });
     }
-    if (await dbClient.db.collection('users').findOne({email})) {
+    const result = dbClient.db.collection('users');
+    if (await result.findOne({ email })) {
       res.status(400).json({ error: 'Already exist' });
     }
     const hashPass = sha1(password);
-    const user = await dbClient.db.collection('users').insertOne({email, password: hashPass});
-    res.status(201).json({ id: user._id, email });
+    const userId = await result.createUser({ email, password: hashPass });
+    res.status(201).json({ id: userId.insertedId, email });
   }
 }
 
