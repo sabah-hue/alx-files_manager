@@ -4,13 +4,14 @@ import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
 class AuthController {
+  // sign-in the user by generating a new authentication token
   static async getConnect(req, res) {
     const authHeader = req.header('Authorization');
-    if (!authHeader || typeof (authHeader) !== 'string' || authHeader.slice(0, 6) !== 'Basic ') {
-      return;
-    }
+    // if (!authHeader || typeof (authHeader) !== 'string' || authHeader.slice(0, 6) !== 'Basic ') {
+    //   return;
+    // }
     const authHeaderData = authHeader.split(' ')[1];
-    const decoded = Buffer.from(authHeaderData, 'base64').toString('ascii');
+    const decoded = Buffer.from(authHeaderData, 'base64').toString('utf8');
     const data = decoded.split(':'); // user data
     if (data.length !== 2) {
       res.status(401).json({ error: 'Unauthorized' });
@@ -30,6 +31,7 @@ class AuthController {
     }
   }
 
+  // sign-out the user based on the token
   static async getDisconnect(req, res) {
     const token = req.header('X-Token');
     const key = `auth_${token}`;
