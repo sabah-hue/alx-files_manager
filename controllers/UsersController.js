@@ -8,18 +8,26 @@ class UsersController {
     const { email, password } = req.body;
     // validate data
     if (!email) {
-      res.status(400).json({ error: 'Missing email' });
+      return res.status(400).json({ error: 'Missing email' });
     }
     if (!password) {
-      res.status(400).json({ error: 'Missing password' });
+      return res.status(400).json({ error: 'Missing password' });
     }
     const result = dbClient.db.collection('users');
     if (await result.findOne({ email })) {
-      res.status(400).json({ error: 'Already exist' });
+      return res.status(400).json({ error: 'Already exist' });
     }
     const hashPass = sha1(password);
     const userId = await result.createUser({ email, password: hashPass });
-    res.status(201).json({ id: userId.insertedId, email });
+    return res.status(201).json({ id: userId.insertedId, email });
+  }
+
+  // retrieve the user base on the token used
+  static async getMe(request, response) {
+    const token = request.headers['X-Token'];
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' })
+    }
   }
 }
 
