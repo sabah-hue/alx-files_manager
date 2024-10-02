@@ -1,28 +1,56 @@
 import sha1 from 'sha1';
 import { ObjectID } from 'mongodb';
+import Queue from 'bull/lib/queue';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
+const userQueue = new Queue('email sending');
 class UsersController {
   // return if Redis is alive and if the DB is alive too
-  static async postNew(req, res) {
-    // recieve data
-    const { email, password } = req.body;
-    // validate data
+  static async postNew(request, response) {
+    const { email, password } = request.body;
     if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+      response.status(400).json({ error: 'Missing email' });
+      return;
     }
     if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
+      response.status(400).json({ error: 'Missing password' });
+      return;
     }
-    const result = dbClient.db.collection('users');
-    if (await result.findOne({ email })) {
-      return res.status(400).json({ error: 'Already exist' });
+    const usersCollection = dbClient.db.collection('users');
+    const existingEmail = await usersCollection.findOne({ email });
+    if (existingEmail) {
+      response.status(400).json({ error: 'Already exist' });
+      return;
     }
-    const hashPass = sha1(password);
-    const userId = await result.createUser({ email, password: hashPass });
-    return res.status(201).json({ id: userId.insertedId, email });
+
+    const shaHashedPw = sha1(password);
+    const inserted = await usersCollection.insertOne({ email, password: shaHashedPw });
+    const userId = inserted.insertedId;
+    userQueue.add({ userId });
+    response.status(201).json({ id: userId, email });
   }
+  // static async postNew(req, res) {
+  //   // recieve data
+  //   const { email, password } = req.body;
+  //   // validate data
+  //   if (!email) {
+  //     return res.status(400).json({ error: 'Missing email' });
+  //   }
+  //   if (!password) {
+  //     return res.status(400).json({ error: 'Missing password' });
+  //   }
+  //   const users = dbClient.db.collection('users');
+  //   users.findOne({ email }, (err, data) => {
+  //     if (data) {
+  //       return res.status(400).json({ error: 'Already exist' });
+  //     }
+  //     const hashPass = sha1(password);
+  //     users.insertOne({ email, password: hashPass })
+  //       .then((user) => res.status(201).json({ id: user.insertedId, email }))
+  //       .catch((e) => console.log(e));
+  //   });
+  // }
 
   // retrieve the user base on the token used
   // static async getMe(req, res) {
