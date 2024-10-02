@@ -16,8 +16,7 @@ class FilesController {
     if (!token) return res.status(401).send({ error: 'Unauthorized' });
     // Bearer key
     const redisToken = await redisClient.get(`auth_${token}`);
-    if (!redisToken)
-      return res.status(401).send({ error: 'Unauthorized' });
+    if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
 
     const user = await dbClient.db
       .collection('users')
@@ -26,11 +25,11 @@ class FilesController {
       return res.status(401).send({ error: 'Unauthorized' });
 
     const fileName = req.body.name;
-    if (!fileName)
-      return res.status(400).send({ error: 'Missing name' });
+    if (!fileName) return res.status(400).send({ error: 'Missing name' });
 
     const fileType = req.body.type;
-    if (!fileType || !['folder', 'file', 'image'].includes(fileType)) return res.status(400).send({ error: 'Missing type' });
+    if (!fileType || !['folder', 'file', 'image'].includes(fileType))
+      return res.status(400).send({ error: 'Missing type' });
 
     const fileData = req.body.data;
     if (!fileData && ['file', 'image'].includes(fileType))
@@ -76,16 +75,14 @@ class FilesController {
     const pathFile = `${pathDir}/${uuidFile}`;
 
     await fs.mkdir(pathDir, { recursive: true }, (error) => {
-      if (error)
-        return res.status(400).send({ error: error.message });
+      if (error) return res.status(400).send({ error: error.message });
       return true;
     });
 
     await fs.writeFile(pathFile, buff, (error) => {
-      if (error)
-        return res.status(400).send({ error: error.message });
+      if (error) return res.status(400).send({ error: error.message });
       return true;
-    })
+    });
 
     dbFile.localPath = pathFile;
     await dbClient.db.collection('files').insertOne(dbFile);
