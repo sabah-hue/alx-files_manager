@@ -1,5 +1,6 @@
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis'
 
 class UsersController {
   // return if Redis is alive and if the DB is alive too
@@ -27,6 +28,17 @@ class UsersController {
     const token = request.headers['X-Token'];
     if (!token) {
         return res.status(401).json({ error: 'Unauthorized' })
+    }else{
+      const userId = await redisClient.get(`auth_${token}`);
+      if (userId) {
+        const users = dbClient.db.collection('users');
+        const user = await users.findOne({_id: ObjectID(id)});
+        if (user) {
+          res.status(200).json({id: user._id, email: user.email});
+        } else {
+          res.status(401).json({error: 'Unauthorized'});
+        }
+      }
     }
   }
 }
