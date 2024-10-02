@@ -1,6 +1,7 @@
 import sha1 from 'sha1';
+import { ObjectID } from 'mongodb';
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis'
+import redisClient from '../utils/redis';
 
 class UsersController {
   // return if Redis is alive and if the DB is alive too
@@ -24,22 +25,39 @@ class UsersController {
   }
 
   // retrieve the user base on the token used
-  static async getMe(request, response) {
-    const token = request.headers['X-Token'];
+  // static async getMe(req, res) {
+  //   const token = req.headers['X-Token'];
+  //   if (!token) {
+  //     return res.status(401).json({ error: 'Unauthorized' });
+  //   }
+  //   const userId = await redisClient.get(`auth_${token}`);
+  //   if (userId) {
+  //     const users = dbClient.db.collection('users');
+  //     const user = await users.findOne({ _id: ObjectID(userId) });
+  //     if (user) {
+  //       res.status(200).json({ id: user._id, email: user.email });
+  //     } else {
+  //       res.status(401).json({ error: 'Unauthorized' });
+  //     }
+  //   }
+  // }
+  static async getMe(req, res) {
+    const token = req.headers['X-Token'];
     if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' })
-    }else{
-      const userId = await redisClient.get(`auth_${token}`);
-      if (userId) {
-        const users = dbClient.db.collection('users');
-        const user = await users.findOne({_id: ObjectID(id)});
-        if (user) {
-          res.status(200).json({id: user._id, email: user.email});
-        } else {
-          res.status(401).json({error: 'Unauthorized'});
-        }
-      }
+      return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const users = dbClient.db.collection('users');
+    const user = await users.findOne({ _id: ObjectID(userId) });
+    if (user) {
+      return res.status(200).json({ id: user._id, email: user.email });
+    }
+    return res.status(404).json({ error: 'User not found' });
   }
 }
 

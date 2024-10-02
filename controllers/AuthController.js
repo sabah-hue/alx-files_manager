@@ -22,7 +22,7 @@ class AuthController {
     if (user) {
       const token = uuidv4();
       const key = `auth_${token}`;
-      
+
       await redisClient.set(key, user._id.toString(), 60 * 60 * 24);
       res.status(200).json({ token });
     } else {
